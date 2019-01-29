@@ -103,6 +103,7 @@ void Help();
 void Score();
 void PromptTakeBack();
 void ListTreasures();
+void PlayAgain();
 
 typedef struct Room
 {
@@ -221,7 +222,6 @@ void  PlaceItems()
 		}
 		while (Rooms[room].item  != EMPTY);
 		
-		printf("%d) PLACING %s in %d\n", i, ItemNames[i],  room);
 		Rooms[room].item = i;
 	}
 	
@@ -687,17 +687,7 @@ void FellIntoPit()
 {
 	printf("SORRY, BUT I TRIED TO WARN YOU.\n");
 	printf("YOU FELL INTO A DEEP PIT AND KILLED YOURSELF !!!\n\n");
-	printf("WOULD YOU LIKE TO PLAY AGAIN? (Y/N)\n");
-	ReadKbd();
-	if (Buffer[0] == 'Y' || Buffer[0] == 'y')
-	{
-		PlaceItems();
-		CurrentRoom=0;	
-	}
-	else
-	{
-		Quit();
-	}
+	PlayAgain();
 }
 
 
@@ -707,9 +697,8 @@ void EatenByDragon()
 	cls();
 	printf("SORRY, BUT I TRIED TO TELL YOU ABOUT THAT SOUND.\n");
 	printf("SUPPER IS NOW BEING SERVED HERE IN THE DRAGON'S CHAMBER...\n");
-	printf("AND YOU ARE THE SUPPER.\n");
-	printf("BETTER LUCK NEXT TIME.");
-	exit(0);
+	printf("AND YOU ARE THE SUPPER.\n\n");
+	PlayAgain();
 }
 
 /*   ::::: ROOF FELL IN ::::: */
@@ -719,8 +708,7 @@ void RoofFellIn()
 	printf("THE ROOF JUST FELL IN AND BURRIED YOU ALIVE. TOO BAD I DON'T\n");
 	printf("HAVE A SHOVEL OR I'D DIG YOU OUT.\n");
 	printf("\n");
-	printf("BETTER LUCK NEXT TIME.");
-	exit(0);
+	PlayAgain();
 }
  
 /*   ::::: PICKED UP MAGIC BOOK ::::: */
@@ -732,7 +720,7 @@ void PickedUpMagicBook()
 	printf("PICK IT UP TURNS INTO A FROG.\n");
 	printf("\nEXCUSE ME WHILE I LOOK FOR SOME FLIES.\n");
 	printf("BETTER LUCK NEXT TIME.\n");
-	exit(0);
+	PlayAgain();
 }
 
 /*   ::::: BATTERIES WENT DEAD ::::: */
@@ -741,8 +729,8 @@ void DeadBattery()
 	printf("\n");
 	printf("NOW LOOK WHAT YOU DID. YOUR FLASH LIGHT WENT OUT AND YOU FELL\n");
 	printf("INTO A PIT AND KILLED YOURSELF. TOO BAD. ESPECIALLY AFTER YOU\n");
-	printf("WERE DOING SO WELL.\n");
-	exit(0);
+	printf("WERE DOING SO WELL.\n\n");
+	PlayAgain();
 }
 
 /*   ::::: USER QUITS ::::: */
@@ -1251,12 +1239,27 @@ void PromptTakeBack()
 }
 
 
-
-
 void Reset()
 {
 	CurrentRoom=0;
 	NumCarriedItems=0;
 	NumSafeTreasures=0;
 	PlaceItems();
+	EntranceRoutine(); /* save treasures */
+	PrintLocation();
+}
+
+void PlayAgain()
+{
+	printf("WOULD YOU LIKE TO PLAY AGAIN? (Y/N)\n");
+	ReadKbd();
+	if (Buffer[0] == 'Y' || Buffer[0] == 'y')
+	{
+		cls();
+		Reset();
+	}
+	else
+	{
+		exit(0);
+	}
 }
