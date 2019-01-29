@@ -53,6 +53,7 @@
 
 void EntranceRoutine();
 void TakeItem(int item);
+void RetakeItem(int item);
 void PrintInventory();
 void StoreTreasures();
 void RoofFellIn();
@@ -63,6 +64,7 @@ void MagicCarpetDissapears();
 void InvisibleMan();
 void EarthQuake();
 void Bats();
+void ScatterTreasures();
 void EatenByDragon();
 void PickedUpMagicBook();
 void DeadBattery();
@@ -71,6 +73,7 @@ void ShootDragon();
 void DragonRoutine();
 void LockBox();
 void PrintWelcome();
+void Reset();
 void PlaceItems();
 void MagicWandRoutine();
 void VendingMachine();
@@ -98,7 +101,8 @@ void Restore();
 void Quit();
 void Help();
 void Score();
-
+void PromptTakeBack();
+void ListTreasures();
 
 typedef struct Room
 {
@@ -115,6 +119,7 @@ int BatteryLife = 200;
 int DogFound = 0; /* BECOMES A 1 AFTER INVISABLE DOG IS FOUND */
 int Welcome=0;
 int LostTreasures = 0; /* treasures taken by the pirate */
+int Debug=0;
 Room Rooms[NUM_CAVES]; 
 
 
@@ -157,12 +162,16 @@ char *ItemNames[] = {
 	};
 	
 
-int main(int arc, char **argv)
+int main(int argc, char **argv)
 {
+	
 	srand(clock());
 	ConnectCaves();
 	PlaceItems();
 	PrintWelcome();
+		
+	if (argc == 2 && strcmp(argv[1],"-d")==0)
+		Debug = 1;
 	
 	while (1)
 	{
@@ -182,6 +191,13 @@ void cls()
 
 void  PlaceItems()
 {
+	/* remove existing items */
+	
+	for (int i=0; i < NUM_CAVES; i++)
+	{
+		Rooms[i].item = EMPTY;
+	}
+	
 	/* Set up 3 pits in rooms (3 - 91) */
 	for (int i=1; i <= 3; i++)
 	{
@@ -191,7 +207,7 @@ void  PlaceItems()
 			room = rand()%88+3;
 		}
 		while (Rooms[room].item != EMPTY);
-		printf("PLACING %s in %d\n", ItemNames[i],  room);
+		
 		Rooms[room].item = PITS;
 	}
 
@@ -266,7 +282,7 @@ void MainLoop()
 		printf("\nWHAT CAVE DO YOU WANT TO EXPLORE NEXT?\n");
 		ReadKbd();
 		
-		if (strcmp(Buffer,"xyzzy")==0)
+		if (strcmp(Buffer,"xyzzy")==0 && Debug == 1)
 		{
 			xyzzy();
 			break;
@@ -286,19 +302,19 @@ void MainLoop()
 			Quit();
 			break;
 		}
-		else if (strcmp(Buffer,"testdog")==0)
+		else if (strcmp(Buffer,"testdog")==0 && Debug == 1)
 		{
 			InvisibleMan();
 		}
-		else if (strcmp(Buffer,"testquake")==0)
+		else if (strcmp(Buffer,"testquake")==0 && Debug == 1)
 		{
 			EarthQuake();
 		}
-		else if (strcmp(Buffer,"testbat")==0)
+		else if (strcmp(Buffer,"testbat")==0 && Debug == 1)
 		{
 			Bats();
 		}
-		else if (strcmp(Buffer,"plugh")==0)
+		else if (strcmp(Buffer,"plugh")==0 && Debug == 1)
 		{
 			plugh();		
 		}
@@ -306,7 +322,7 @@ void MainLoop()
 		{
 			int room = atoi(Buffer);
 		
-			if (!IsNeighbor(room))
+			if (!IsNeighbor(room) && !Debug)
 			{
 				printf("SORRY, BUT YOU CAN'T GO THERE FROM HERE.\n");
 			}
@@ -389,6 +405,13 @@ void TakeItem(int item)
 	Rooms[CurrentRoom].item = EMPTY;
 }
 
+/* Puts an item in the player's inventory and removes it from the room*/
+void RetakeItem(int item)
+{
+	printf("O.K. YOU'VE GOT %s.\n", ItemNames[item]);
+	Inventory[NumCarriedItems++] = item;
+}
+
 
 
 /*   ::::: LOCK BOX :::::  */
@@ -464,19 +487,7 @@ void Bats()
 	if (NumCarriedItems > 0)
 	{
 		printf("YOU DROPPED ALL OF YOUR TREASURES ALONG THE WAY.\n");
-		
-		for (int i=0; i < 3; i++)
-		{
-			do
-			{
-				newRoom = rand()%93 + 1;
-				if (Rooms[newRoom].item != EMPTY) break;
-			} while (1);
-			
-			Rooms[newRoom].item = Inventory[i];
-			Inventory[i] = 0;
-		}
-		NumCarriedItems = 0;		
+		ScatterTreasures();
 	}
 	
 	/* now move the player */
@@ -501,11 +512,12 @@ void PirateHere()
 	
 	if (NumCarriedItems > 0)
 	{
+		/*
 		for (int i=0; i < 3; i++)
 		{
-			Inventory[i] = EMPTY;
-			
-		}
+			Inventory[i] = EMPTY;			
+		}*/
+		ScatterTreasures();
 		printf("HE JUST STOLE ALL OF YOUR TREASURES.\n");
 		LostTreasures += NumCarriedItems;
 		NumCarriedItems=0;
@@ -647,19 +659,13 @@ void EntranceRoutine()
 	if (CurrentRoom == 0)
 	{ 
 		StoreTreasures();
-		Score();
-		
-		if (NumSafeTreasures > 0)
-		{
-			printf("SO FAR, YOU'VE FOUND THESE TREASURES IN THE CAVES:\n");
 
-			for (int i = 0; i < NumSafeTreasures; i++)
-			{
-				printf("\t%s", ItemNames[SafeTreasures[i]]);
-				if ((i+1) % 4 == 0)
-					printf("\n");
-			}
-			printf("\n");
+		Score();
+				
+		if (NumSafeTreasures > 0)
+		{	
+			ListTreasures();
+			PromptTakeBack();
 		}
 		printf("\n");
 	}
@@ -680,9 +686,18 @@ void EntranceRoutine()
 void FellIntoPit()
 {
 	printf("SORRY, BUT I TRIED TO WARN YOU.\n");
-	printf("YOU FELL INTO A DEEP PIT AND KILLED YOURSELF !!!\n");
-	printf("BETTER LUCK NEXT TIME.");
-	exit(0);
+	printf("YOU FELL INTO A DEEP PIT AND KILLED YOURSELF !!!\n\n");
+	printf("WOULD YOU LIKE TO PLAY AGAIN? (Y/N)\n");
+	ReadKbd();
+	if (Buffer[0] == 'Y' || Buffer[0] == 'y')
+	{
+		PlaceItems();
+		CurrentRoom=0;	
+	}
+	else
+	{
+		Quit();
+	}
 }
 
 
@@ -772,7 +787,8 @@ void MoveItemToNewCave(int item, int oldRoom)
 void PrintAdjacentRoomInfo()
 {
 	if (NextTo(PITS)) printf("THERE'S PITS NEARBY. WATCH YOUR STEP.\n");
-	if (NextTo(PIRATE)) printf("CAREFUL. THERE'S A PIRATE NEAR HERE.\n");
+	//if (NextTo(PIRATE)) printf("CAREFUL. THERE'S A PIRATE NEAR HERE.\n");
+	if (NextTo(PIRATE)) printf("NEARBY, SOMEONE IS SINGING SEA SHANTIES.\n");
 	if (NextTo(DRAGON)) printf("I HEAR A HUNGRY DRAGON WAITING FOR HIS SUPPER.\n");
 	if (NextTo(PIRATE)) printf("THERE'S A SIGN HERE THAT SAYS, >>> D A N G E R <<<\n");
 	if (NextTo(ELF)) printf("SOUNDS LIKE SOMEBODY IS SINGING. MUST BE AN ELF.\n");
@@ -785,7 +801,7 @@ void PrintWelcome()
 	cls();
 	printf("T R E A S U R E   H U N T\n");
 	printf("BY LANCE MICKLUS, 1978\n");
-	printf("PORTED BY EVAN WRIGHT, 2019\n");
+	printf("PORTED BY EVAN WRIGHT, 2019 (WITH PERMISSION)\n");
 	printf("\n");
 	printf("THE LUMUS CAVES, LOCATED IN LUMUSVILLE, VERMONT, ARE SAID TO\n");
 	printf("HAVE 20 HIDDEN TREASURES IN THEM. FEW EXPLORE THE CAVES\n");
@@ -1149,26 +1165,7 @@ void Score()
 		{
 			printf("CONGRATULATIONS!\nYOU'VE RECOVERED ALL THE TREASURES.\n");
 		}
-		else
-		{
-			printf("CONGRATULATIONS!\n");
-			printf("YOU'VE RECOVERED 20 TREASURES, BUT SOME ARE NOW LOST FOREVER.\n");
-			/*
-			if (IsSafe(MAGIC_WAND) && !IsSafe(A_SWORD))
-			{
-				printf("YOU DIDN'T RECOVER THE SWORD.\n");
-			}
-			if (IsSafe(SOME_KEYS) && !IsSafe(A_RUBY))
-			{
-				printf("YOU DIDN'T RECOVER THE RUBY.\n");
-			}
-			if (IsSafe(OLD_GUN) && !IsSafe(A_BLACK_BOOK))
-			{
-				printf("YOU DIDN'T RECOVER THE BLACK BOOK.\n");
-			}
-			*/
-		}
-		
+ 		
 		printf("WOULD YOU LIKE TO KEEP EXPLORING? (Y/N)\n");
 		ReadKbd();
 		if (Buffer[0] == 'N' || Buffer[0] == 'n')
@@ -1176,6 +1173,90 @@ void Score()
 			Quit();
 		}
 	}
+}
+
+/*puts player's treasures in random empty rooms*/
+void ScatterTreasures()
+{
+	int newRoom = 0;
+	for (int i=0; i < 3; i++)
+	{
+		do
+		{
+			newRoom = rand()%93 + 1;
+			if (Rooms[newRoom].item != EMPTY) 
+				break;
+		} while (1);
+		
+		Rooms[newRoom].item = Inventory[i];
+		Inventory[i] = 0;
+	}
+	
+	NumCarriedItems = 0;
+}
+
+void ListTreasures()
+{
+	printf("SO FAR, YOU'VE FOUND THESE TREASURES IN THE CAVES:\n");
+
+	for (int i = 0; i < NumSafeTreasures; i++)
+	{
+		printf("\t%s", ItemNames[SafeTreasures[i]]);
+		if ((i+1) % 4 == 0)
+			printf("\n");
+	}
+	printf("\n");
 
 }
 
+void PromptTakeBack()
+{
+	if (NumSafeTreasures > 0)
+	{		
+		printf("\nWOULD YOU LIKE TO PUT ANY TREASURES BACK IN YOUR INVENTORY? (Y/N)\n");
+		ReadKbd();
+		if (Buffer[0] == 'Y' || Buffer[0] == 'y')
+		{
+			for (int i=0; i < NumSafeTreasures ; i++)
+			{
+				printf("\t%d: %s",(i+1),ItemNames[ SafeTreasures[i] ]);
+				if ((i+1)%4==0)
+					printf("\n");
+			}
+			printf("\n");
+			printf("ENTER THE NUMBER OF THE TREASURE TO TAKE?\n");
+			
+			ReadKbd();
+			int n = atoi(Buffer);
+			if ( n <= NumSafeTreasures && n > 0)
+			{
+				n--;  /* turn index into item # */
+				int t = SafeTreasures[n];
+				RetakeItem(t);
+				
+				/* now remove n from the safe treasures */
+				for (int i=n; i < NumSafeTreasures-1; i++)
+				{
+					SafeTreasures[i] = SafeTreasures[i+1];
+				}
+				NumSafeTreasures--;
+				
+			}
+			else
+			{
+				printf("INVALID CHOICE.");
+			}
+		}
+	}
+}
+
+
+
+
+void Reset()
+{
+	CurrentRoom=0;
+	NumCarriedItems=0;
+	NumSafeTreasures=0;
+	PlaceItems();
+}
