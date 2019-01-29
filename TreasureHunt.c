@@ -10,6 +10,7 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #define NUM_CAVES 95
 
@@ -85,7 +86,7 @@ void PrintAdjacentRoomInfo();
 void ConnectCaves();
 void Connect(int cave, int neighbor1, int neighbor2, int neighbor3);
 void ReadKbd();
-void cls();
+void CLS();
 void HandleTake();
 void RemoveItem(int item);
 int NextTo(int item);
@@ -165,7 +166,6 @@ char *ItemNames[] = {
 
 int main(int argc, char **argv)
 {
-	
 	srand(clock());
 	ConnectCaves();
 	PlaceItems();
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 	return 0;
 } 
 
-void cls()
+void CLS()
 {
 	printf("\x1b[2J"); //cls
 	printf("\x1b[0;0H"); //position cursor583
@@ -230,7 +230,7 @@ void  PlaceItems()
  
 void MainLoop()
 {	
-	cls();
+	CLS();
 	
 	if (!Welcome)
 	{
@@ -339,7 +339,7 @@ void MainLoop()
 void ChanceSituations()
 {
 	if ( rand()% 200 == 0) EarthQuake();
-	if ( rand() % 200 == 0) Bats();
+	if ( rand() % 100 == 0) Bats();
 	if ( DogFound == 0 &&  Rooms[CurrentRoom].item == EMPTY && rand()%50==0 ) InvisibleMan();
 	if (  Rooms[CurrentRoom].item == CAVE_IN_DANGER && rand()%5==0 ) RoofFellIn();
 	if (  PlayerHas(MAGIC_CARPET)  && rand()%10==0 ) MagicCarpetDissapears();
@@ -466,12 +466,19 @@ void MagicWandRoutine()
 	}
 	else
 	{
+		fflush(stdout);
+		usleep(100000);
 		printf("LET ME USE YOUR MAGIC WAND A SECOND.\n");
-		//sleep(1000);
-		printf("HOCUS, POCUS...\n");
-		//sleep(1000);
+		fflush(stdout);
+		usleep(1000000);
+		printf("HOCUS...");
+		fflush(stdout);
+		usleep(1000000);
+		printf("POCUS...\n");
+		fflush(stdout);
+		usleep(1000000);
 		Rooms[CurrentRoom].item = A_SWORD;
-		printf("THE SWORD LEVITATES FROM THE ROCK.\n");
+		printf("THE SWORD JUST LEVITATED FROM THE ROCK!\n");
 		HandleTake();
 	}
 
@@ -482,7 +489,7 @@ void MagicWandRoutine()
 void Bats()
 {
 	int newRoom = 0;
-	cls();
+	CLS();
 	printf("A SUPER BAT JUST FEW INTO THE CAVE AND PICKED YOU UP.\n");
 	if (NumCarriedItems > 0)
 	{
@@ -502,7 +509,7 @@ void Bats()
 	printf("THE BAT JUST DROPPED YOU INTO CAVE %d!!!\n", CurrentRoom);
 	printf("IF YOU'RE ALRIGHT HIT THE ''ENTER'' KEY");
 	ReadKbd();
-	cls();
+	CLS();
 }
 
 /*   ::::: PIRATE HERE :::::  */
@@ -531,7 +538,7 @@ void PirateHere()
 /*   ::::: MAGICIAN ROUTINE :::::  */
 void MagiciansCave()
 {
-	cls();
+	CLS();
 	printf("THERE'S A MAGICIAN IN THIS CAVE. HE SAYS HE LOST HIS MAGIC\n");
 	printf("BOOK. HE SAID HE'D GIVE YOU A GOLDEN HARP IF YOU'LL TELL HIM\n");
 	printf("WHERE IT IS. TYPE IN THE CAVE NUMBER. IF YOU DON'T KNOW, THEN\n");
@@ -571,7 +578,7 @@ void MagiciansCave()
 			
 		}
 	}
-	cls();
+	CLS();
 	PrintLocation();
 	PrintAdjacentRoomInfo();
 }
@@ -595,7 +602,7 @@ void InvisibleMan()
 			DogFound = 1;
 			HandleTake();
 	}
-	cls();
+	CLS();
 	PrintLocation();
 	PrintAdjacentRoomInfo();
 }
@@ -626,17 +633,20 @@ void ShootDragon()
 {
 	printf("YIKES !!!! THERE'S A DRAGON IN HERE.\n");
 	printf("GIVE ME YOUR GUN, QUICK !!!");
-
-	//sleep(2000);
-	
+	usleep(100000);
+	fflush(stdout);
 	for (int i=0; i < 5 ; i++)
 	{
+		usleep(250000);
 		printf("\tBANG!");
-		//sleep(250);
+		fflush(stdout);
 	}
 	
-	
-	printf("\nPOOF !!!\n");
+	usleep(1000000);
+	printf("\nPOOF!!!\n");
+	fflush(stdout);
+	usleep(100000);
+
 	printf("INCREDIBLE???  THE DRAGON JUST VANISHED WHEN I SHOT HIM RIGHT\n");
 	printf("BETWEEN THE EYES.\n");
 	printf("BUT LOOK AT THIS. HE LEFT BEHIND HIS LITTLE BLACK BOOK\n");
@@ -649,7 +659,7 @@ void ShootDragon()
 	Rooms[CurrentRoom].item = A_BLACK_BOOK;
 	BatteryLife++;
 	
-	cls();
+	CLS();
 	PrintLocation();
 }
 
@@ -694,7 +704,7 @@ void FellIntoPit()
 /*   ::::: EATEN BY THE DRAGON ::::: */
 void EatenByDragon()
 {
-	cls();
+	CLS();
 	printf("SORRY, BUT I TRIED TO TELL YOU ABOUT THAT SOUND.\n");
 	printf("SUPPER IS NOW BEING SERVED HERE IN THE DRAGON'S CHAMBER...\n");
 	printf("AND YOU ARE THE SUPPER.\n\n");
@@ -736,7 +746,14 @@ void DeadBattery()
 /*   ::::: USER QUITS ::::: */
 void Quit()
 {
-	printf("THE TREASURES ARE YOURS TO KEEP. GOOD LUCK !!!");
+	if (NumSafeTreasures > 0)
+	{
+		printf("THE TREASURES ARE YOURS TO KEEP. GOOD LUCK !!!");
+	}
+	else
+	{
+		printf("Bye\n");
+	}
 	exit(0);
 }
 
@@ -749,8 +766,8 @@ void MagicianUpset(int caveGuess)
 	printf("A MAGIC BOOK IN IT. TO PUNISH YOU, THE MAGICIAN CAST A SPELL\n");
 	printf("ON YOU AND NOW YOU'RE ONLY 2 INCHES TALL. WORST YET, THE\n");
 	printf("THE MAGICIAN PUT YOU IN A SMALL JAR. IF YOU EVER GET OUT OF\n");
-	printf("THIS MESS, LET ME KNOW.");
-	exit(0);
+	printf("THIS MESS, LET ME KNOW.\n\n");
+	PlayAgain();
 }
 
 /*   ::::: MOVE ITEM TO NEW CAVE LOCATION :::::   */
@@ -786,7 +803,7 @@ void PrintAdjacentRoomInfo()
 
 void PrintWelcome()
 {
-	cls();
+	CLS();
 	printf("T R E A S U R E   H U N T\n");
 	printf("BY LANCE MICKLUS, 1978\n");
 	printf("PORTED BY EVAN WRIGHT, 2019 (WITH PERMISSION)\n");
@@ -805,7 +822,7 @@ void PrintWelcome()
 	printf("\n");
 	printf("HIT THE ''ENTER'' KEY WHEN YOUR READY TO BEGIN\n");
 	ReadKbd();
-	cls();
+	CLS();
 }
 
 void PrintInventory()
@@ -1081,9 +1098,6 @@ void plugh()
 }
 
 
-void help()
-{
-}
 
 void Save()
 {
@@ -1112,7 +1126,7 @@ void Save()
 	
 	printf("PRESS ENTER TO CONTINUE.\n");
 	ReadKbd();
-	cls();
+	CLS();
 }
 
 void Restore()
@@ -1141,19 +1155,15 @@ void Restore()
 	}
 	printf("PRESS ENTER TO CONTINUE.\n");
 	ReadKbd();
-	cls();
+	CLS();
 }
 
 void Score()
 {
 	if (NumSafeTreasures == MAX_TREASURES)
-	{
+	{ 
+		printf("CONGRATULATIONS!\nYOU'VE RECOVERED ALL THE TREASURES.\n");
 		
-		if (IsSafe(A_BLACK_BOOK) && IsSafe(A_RUBY) && IsSafe(A_SWORD))
-		{
-			printf("CONGRATULATIONS!\nYOU'VE RECOVERED ALL THE TREASURES.\n");
-		}
- 		
 		printf("WOULD YOU LIKE TO KEEP EXPLORING? (Y/N)\n");
 		ReadKbd();
 		if (Buffer[0] == 'N' || Buffer[0] == 'n')
@@ -1171,7 +1181,7 @@ void ScatterTreasures()
 	{
 		do
 		{
-			newRoom = rand()%93 + 1;
+			newRoom = rand()%(NUM_CAVES-1) + 1;
 			if (Rooms[newRoom].item != EMPTY) 
 				break;
 		} while (1);
@@ -1255,11 +1265,11 @@ void PlayAgain()
 	ReadKbd();
 	if (Buffer[0] == 'Y' || Buffer[0] == 'y')
 	{
-		cls();
+		CLS();
 		Reset();
 	}
 	else
 	{
-		exit(0);
+		Quit();
 	}
 }
