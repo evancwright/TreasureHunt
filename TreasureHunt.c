@@ -50,7 +50,6 @@
 #define A_1000_BILL 31
 
 #define MAX_TREASURES 20
-#define MAX_SAFE_TREASURES 34
 
 void EntranceRoutine();
 void TakeItem(int item);
@@ -113,7 +112,7 @@ typedef struct Room
 } Room;
   
 int CurrentRoom = 0;
-int SafeTreasures[MAX_SAFE_TREASURES];
+int SafeTreasures[MAX_TREASURES];
 int Inventory[3];
 int NumCarriedItems=0;
 int NumSafeTreasures=0;
@@ -122,6 +121,7 @@ int DogFound = 0; /* BECOMES A 1 AFTER INVISABLE DOG IS FOUND */
 int Welcome=0;
 int LostTreasures = 0; /* treasures taken by the pirate */
 int Debug=0;
+
 Room Rooms[NUM_CAVES]; 
 
 
@@ -247,11 +247,14 @@ void MainLoop()
 
 	EntranceRoutine(); /* save treasures */
 	
-	PrintLocation();
+	if (Rooms[CurrentRoom].item != PITS)
+		PrintLocation();
 	
 	if (CurrentRoom != 0)
 	{
-		PrintAdjacentRoomInfo();
+		if (Rooms[CurrentRoom].item != PITS)
+			PrintAdjacentRoomInfo();
+		
 		ChanceSituations();
 		SpecialSituations();
 		PrintInventory();
@@ -420,7 +423,7 @@ void LockBox()
 	if (PlayerHas(SOME_KEYS))
 	{
 		printf("THE BOX WAS TOO HEAVY SO I OPENNED IT WITH YOUR KEYS.\n");
-		printf("INSIDE THE BOX IS A RUBY.");
+		printf("INSIDE THE BOX IS A RUBY.\n");
 		Rooms[CurrentRoom].item = A_RUBY;
 		HandleTake();
 	}
@@ -557,7 +560,7 @@ void MagiciansCave()
 		}
 		else
 		{
-			printf("THE WIZARD THANKS YOU AND VANISHES IN A PUFF OF SMOKE.\n", ItemNames[A_GOLDEN_HARP]);
+			printf("THE WIZARD THANKS YOU AND VANISHES IN A PUFF OF SMOKE.\n");
 
 			/* Remove the magic book */
 			for (int i=0; i < NUM_CAVES; i++)
@@ -572,7 +575,7 @@ void MagiciansCave()
 			
 			Rooms[CurrentRoom].item = A_GOLDEN_HARP; /* replace magician with harp */
 			
-			printf("THERE IS A %s HERE.\n", ItemNames[A_GOLDEN_HARP]);
+			printf("THERE IS %s HERE.\n", ItemNames[A_GOLDEN_HARP]);
 			HandleTake();
 			
 			
@@ -631,9 +634,13 @@ void DragonRoutine()
 
 void ShootDragon()
 {
+	usleep(500000);
+	fflush(stdout);
 	printf("YIKES !!!! THERE'S A DRAGON IN HERE.\n");
+	usleep(500000);
+	fflush(stdout);
 	printf("GIVE ME YOUR GUN, QUICK !!!");
-	usleep(100000);
+	usleep(500000);
 	fflush(stdout);
 	for (int i=0; i < 5 ; i++)
 	{
@@ -748,11 +755,11 @@ void Quit()
 {
 	if (NumSafeTreasures > 0)
 	{
-		printf("THE TREASURES ARE YOURS TO KEEP. GOOD LUCK !!!");
+		printf("THE TREASURES ARE YOURS TO KEEP.\n");
 	}
 	else
 	{
-		printf("Bye\n");
+		printf("BYE.\n");
 	}
 	exit(0);
 }
@@ -792,8 +799,7 @@ void MoveItemToNewCave(int item, int oldRoom)
 void PrintAdjacentRoomInfo()
 {
 	if (NextTo(PITS)) printf("THERE'S PITS NEARBY. WATCH YOUR STEP.\n");
-	//if (NextTo(PIRATE)) printf("CAREFUL. THERE'S A PIRATE NEAR HERE.\n");
-	if (NextTo(PIRATE)) printf("NEARBY, SOMEONE IS SINGING SEA SHANTIES.\n");
+	if (NextTo(PIRATE)) printf("CAREFUL. THERE'S A PIRATE NEAR HERE.\n");
 	if (NextTo(DRAGON)) printf("I HEAR A HUNGRY DRAGON WAITING FOR HIS SUPPER.\n");
 	if (NextTo(PIRATE)) printf("THERE'S A SIGN HERE THAT SAYS, >>> D A N G E R <<<\n");
 	if (NextTo(ELF)) printf("SOUNDS LIKE SOMEBODY IS SINGING. MUST BE AN ELF.\n");
@@ -820,7 +826,7 @@ void PrintWelcome()
 	printf("I HOPE YOU BROUGHT A MAP. IF NOT, YOU'LL HAVE TO MAKE ONE UP\n");
 	printf("AS WE EXPLORE.\n");
 	printf("\n");
-	printf("HIT THE ''ENTER'' KEY WHEN YOUR READY TO BEGIN\n");
+	printf("HIT THE ''ENTER'' KEY WHEN YOU'RE READY TO BEGIN\n");
 	ReadKbd();
 	CLS();
 }
@@ -858,7 +864,7 @@ int PlayerHas(int item)
 
 int IsSafe(int item)
 {
-	for (int i=0; i <  MAX_SAFE_TREASURES; i++)
+	for (int i=0; i <  MAX_TREASURES; i++)
 	{
 		if (SafeTreasures[i] == item)
 			return 1;
@@ -1114,7 +1120,7 @@ void Save()
 		fwrite(&NumCarriedItems, sizeof(int), 1, fp );
 		fwrite(&NumSafeTreasures, sizeof(int), 1, fp );
 		fwrite(Inventory, sizeof(int), 3, fp );
-		fwrite(SafeTreasures, sizeof(int), MAX_SAFE_TREASURES, fp );
+		fwrite(SafeTreasures, sizeof(int), MAX_TREASURES, fp );
 		fwrite(Rooms, sizeof(Room), NUM_CAVES, fp );
 		fclose(fp);
 		printf("GAME SAVED.\n");
@@ -1144,7 +1150,7 @@ void Restore()
 		fread(&NumCarriedItems, sizeof(int), 1, fp );
 		fread(&NumSafeTreasures, sizeof(int), 1, fp );
 		fread(Inventory, sizeof(int), 3, fp );
-		fread(SafeTreasures, sizeof(int), MAX_SAFE_TREASURES, fp );
+		fread(SafeTreasures, sizeof(int), MAX_TREASURES, fp );
 		fread(Rooms, sizeof(Room), NUM_CAVES, fp );
 		fclose(fp);
 		printf("GAME RESTORED.\n");
@@ -1263,6 +1269,7 @@ void PlayAgain()
 {
 	printf("WOULD YOU LIKE TO PLAY AGAIN? (Y/N)\n");
 	ReadKbd();
+	
 	if (Buffer[0] == 'Y' || Buffer[0] == 'y')
 	{
 		CLS();
