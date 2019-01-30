@@ -119,7 +119,6 @@ int NumSafeTreasures=0;
 int BatteryLife = 200;
 int DogFound = 0; /* BECOMES A 1 AFTER INVISABLE DOG IS FOUND */
 int Welcome=0;
-int LostTreasures = 0; /* treasures taken by the pirate */
 int Debug=0;
 
 Room Rooms[NUM_CAVES]; 
@@ -333,7 +332,7 @@ void MainLoop()
 			{
 				if (Rooms[CurrentRoom].item == ELF)
 				{
-					Rooms[CurrentRoom].item == ELF_FOOD; 
+					Rooms[CurrentRoom].item = SOME_ELF_FOOD; 
 				}
 				CurrentRoom = room;
 				break;
@@ -529,7 +528,6 @@ void PirateHere()
 		}*/
 		ScatterTreasures();
 		printf("HE JUST STOLE ALL OF YOUR TREASURES.\n");
-		LostTreasures += NumCarriedItems;
 		NumCarriedItems=0;
 	}
 	
@@ -577,15 +575,15 @@ void MagiciansCave()
 			
 			printf("THERE IS %s HERE.\n", ItemNames[A_GOLDEN_HARP]);
 			HandleTake();
-			
-			
-		}
-		else
-		{
-			MoveItemToNewCave(MAGICIANS_CAVE,CurrentRoom);
+						
 		}
 				
 	}
+	else
+	{
+		MoveItemToNewCave(MAGICIANS_CAVE,CurrentRoom);
+	}
+
 	CLS();
 	PrintLocation();
 	PrintAdjacentRoomInfo();
