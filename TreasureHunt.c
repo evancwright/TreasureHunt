@@ -331,6 +331,10 @@ void MainLoop()
 			}
 			else
 			{
+				if (Rooms[CurrentRoom].item == ELF)
+				{
+					Rooms[CurrentRoom].item == ELF_FOOD; 
+				}
 				CurrentRoom = room;
 				break;
 			}
@@ -356,11 +360,7 @@ void SpecialSituations()
 	else if (Rooms[CurrentRoom].item == PIRATE) PirateHere();
 	else if ( Rooms[CurrentRoom].item == DRAGON ) DragonRoutine();
 	else if (Rooms[CurrentRoom].item == VENDING_MACHINE) VendingMachine();
-	else if  (Rooms[CurrentRoom].item == ELF)
-	{
-		printf("THERE'S A SHY LITTLE ELF IN HERE HIDING SOMETHING.\n");
-		Rooms[CurrentRoom].item = SOME_ELF_FOOD; /* replace elf with food */
-	}
+	else if  (Rooms[CurrentRoom].item == ELF) printf("THERE'S A SHY LITTLE ELF IN HERE HIDING SOMETHING.\n");
 	else if  (Rooms[CurrentRoom].item == MAGICIANS_CAVE) MagiciansCave();
 }
 
@@ -580,6 +580,11 @@ void MagiciansCave()
 			
 			
 		}
+		else
+		{
+			MoveItemToNewCave(MAGICIANS_CAVE,CurrentRoom);
+		}
+				
 	}
 	CLS();
 	PrintLocation();
@@ -801,7 +806,7 @@ void PrintAdjacentRoomInfo()
 	if (NextTo(PITS)) printf("THERE'S PITS NEARBY. WATCH YOUR STEP.\n");
 	if (NextTo(PIRATE)) printf("CAREFUL. THERE'S A PIRATE NEAR HERE.\n");
 	if (NextTo(DRAGON)) printf("I HEAR A HUNGRY DRAGON WAITING FOR HIS SUPPER.\n");
-	if (NextTo(PIRATE)) printf("THERE'S A SIGN HERE THAT SAYS, >>> D A N G E R <<<\n");
+	if (NextTo(CAVE_IN_DANGER)) printf("THERE'S A SIGN HERE THAT SAYS, >>> D A N G E R <<<\n");
 	if (NextTo(ELF)) printf("SOUNDS LIKE SOMEBODY IS SINGING. MUST BE AN ELF.\n");
 	if (NextTo(MAGICIANS_CAVE)) printf("THERE'S A STRANGE MIST IN THIS CAVE.\n");
 	if (NextTo(INVISIBLE_DOG)) printf("''RUFF RUFF''  I HEAR A DOG BARKING.\n");
@@ -913,6 +918,8 @@ void ListNeighbors()
 	
 }
 
+
+/*removes an item from the player's inventory*/
 void RemoveItem(int item)
 {
 	/* shift items down */
