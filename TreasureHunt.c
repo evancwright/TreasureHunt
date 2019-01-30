@@ -166,14 +166,15 @@ char *ItemNames[] = {
 
 int main(int argc, char **argv)
 {
+	if (argc == 2 && strcmp(argv[1],"-d")==0)
+		Debug = 1;
+
 	srand(clock());
 	ConnectCaves();
 	PlaceItems();
 	PrintWelcome();
+
 		
-	if (argc == 2 && strcmp(argv[1],"-d")==0)
-		Debug = 1;
-	
 	while (1)
 	{
 		MainLoop();
@@ -235,8 +236,6 @@ void MainLoop()
 	if (!Welcome)
 	{
 		printf("WELCOME TO THE LUMUS CAVE WHERE YOU'LL FIND MYSTERY, TREASURE, AND ADVENTURE.\n\n");
-		printf("YOU CAN SAVE OR RESTORE YOUR GAME AT ANY TIME BY USING THE ");
-		printf("'SAVE' AND 'RESTORE'\nCOMMANDS.\n");
 		Welcome = 1;
 	}
 
@@ -824,8 +823,14 @@ void PrintWelcome()
 	printf("I HOPE YOU BROUGHT A MAP. IF NOT, YOU'LL HAVE TO MAKE ONE UP\n");
 	printf("AS WE EXPLORE.\n");
 	printf("\n");
-	printf("HIT THE ''ENTER'' KEY WHEN YOU'RE READY TO BEGIN\n");
+	printf("WOULD YOU LIKE INSTRUCTIONS?(Y/N).\n");
+	
 	ReadKbd();
+	if (Buffer[0] == 'Y' || Buffer[0] == 'y')
+	{
+		Help();
+	}
+
 	CLS();
 }
 
@@ -1296,4 +1301,22 @@ void PlayAgain()
 	{
 		Quit();
 	}
+}
+
+void Help()
+{
+	CLS();
+	printf("WELCOME TO TREASURE HUNT!\n\n");
+	printf("YOUR GOAL IS TO FIND ALL TWENTY TREASURES IN THE \n");
+	printf("LUMUS CAVES. HOWEVER,YOU CAN ONLY CARRY THREE \n");
+	printf("ITEMS AT A TIME. EACH TIME YOU RETURN TO THE \n");
+	printf("CAVE ENTRANCE, YOUR TREASURES WILL BE DEPOSITED\n");
+	printf("THERE FOR SAFE-KEEPING.  YOU MAY FIND THAT YOU LATER\n");
+	printf("NEED A TREASURE YOU'VE LEFT BACK AT THE ENTRANCE.\n");
+	printf("IF THIS HAPPENS, YOU CAN RETURN TO THE ENTRANCE\n");
+	printf("AND PUT THE ITEM BACK IN YOUR INVENTORY.\n\n");
+	printf("REMEMBER, YOU CAN SAVE/RESTORE YOUR GAME AT ANY TIME.\n\n");
+	printf("HIT THE ''ENTER'' KEY WHEN YOU'RE READY TO BEGIN\n");
+	ReadKbd();
+	CLS();
 }
