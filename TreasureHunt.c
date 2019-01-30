@@ -100,10 +100,11 @@ void Save();
 void Restore();
 void Quit();
 void Help();
-void Score();
+void CheckForWin();
 void PromptTakeBack();
 void ListTreasures();
 void PlayAgain();
+void RemoveFromGame(int item);
 
 typedef struct Room
 {
@@ -262,7 +263,8 @@ void MainLoop()
 		{
 			if (Rooms[CurrentRoom].item != MAGICIANS_CAVE && 
 				Rooms[CurrentRoom].item != INVISIBLE_DOG && 
-				Rooms[CurrentRoom].item != VENDING_MACHINE )
+				Rooms[CurrentRoom].item != VENDING_MACHINE &&
+				Rooms[CurrentRoom].item != ELF)
 			{
 				printf("THIS CAVE HAS %s IN IT.\n", ItemNames[  Rooms[CurrentRoom].item  ]);
 			}
@@ -270,7 +272,8 @@ void MainLoop()
 			if (Rooms[CurrentRoom].item != CAVE_IN_DANGER &&
 				Rooms[CurrentRoom].item != MAGICIANS_CAVE && 
 				Rooms[CurrentRoom].item != INVISIBLE_DOG && 
-				Rooms[CurrentRoom].item != VENDING_MACHINE)
+				Rooms[CurrentRoom].item != VENDING_MACHINE &&
+				Rooms[CurrentRoom].item != ELF)
 			{
 				HandleTake();
 			}
@@ -558,18 +561,9 @@ void MagiciansCave()
 		}
 		else
 		{
-			printf("THE WIZARD THANKS YOU AND VANISHES IN A PUFF OF SMOKE.\n");
+			printf("THE WIZARD JUST VANISHED IN A PUFF OF SMOKE!\n");
 
-			/* Remove the magic book */
-			for (int i=0; i < NUM_CAVES; i++)
-			{
-				if (Rooms[i].item == A_MAGIC_BOOK)
-				{
-					Rooms[i].item = EMPTY;
-					break;
-				}
-			}				
-			
+			RemoveFromGame(A_MAGIC_BOOK);			
 			
 			Rooms[CurrentRoom].item = A_GOLDEN_HARP; /* replace magician with harp */
 			
@@ -602,10 +596,11 @@ void InvisibleMan()
 	
 	if (Rooms[room].item == INVISIBLE_DOG)
 	{
-			printf("***POOF***\n");
-			printf("A $1000 BILL FLUTTERS TO THE GROUND!\n");
+			printf("POOF!\n");
+			printf("A $1000 BILL JUST FLUTTERED TO THE GROUND.\n");
 			Rooms[CurrentRoom].item = A_1000_BILL;
 			DogFound = 1;
+			RemoveFromGame(INVISIBLE_DOG);
 			HandleTake();
 	}
 	CLS();
@@ -680,7 +675,7 @@ void EntranceRoutine()
 	{ 
 		StoreTreasures();
 
-		Score();
+		CheckForWin();
 				
 		if (NumSafeTreasures > 0)
 		{	
@@ -1169,7 +1164,7 @@ void Restore()
 	CLS();
 }
 
-void Score()
+void CheckForWin()
 {
 	if (NumSafeTreasures == MAX_TREASURES)
 	{ 
@@ -1184,7 +1179,8 @@ void Score()
 	}
 }
 
-/*puts player's treasures in random empty rooms*/
+/*puts player's treasures in random empty rooms
+ *other than room 0*/
 void ScatterTreasures()
 {
 	int newRoom = 0;
@@ -1202,6 +1198,22 @@ void ScatterTreasures()
 	}
 	
 	NumCarriedItems = 0;
+}
+
+
+/* Removes an item from the game. Used to 
+ * make the dog and magic book vanish
+ */
+void RemoveFromGame(int item)
+{
+	for (int i=0; i < NUM_CAVES; i++)
+	{
+		if (Rooms[i].item == item)
+		{
+			Rooms[i].item = EMPTY;
+			break;
+		}
+	}				
 }
 
 void ListTreasures()
