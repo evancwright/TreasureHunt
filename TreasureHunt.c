@@ -263,6 +263,7 @@ void MainLoop()
 			if (Rooms[CurrentRoom].item != MAGICIANS_CAVE && 
 				Rooms[CurrentRoom].item != INVISIBLE_DOG && 
 				Rooms[CurrentRoom].item != VENDING_MACHINE &&
+				Rooms[CurrentRoom].item != CAVE_IN_DANGER &&
 				Rooms[CurrentRoom].item != ELF)
 			{
 				printf("THIS CAVE HAS %s IN IT.\n", ItemNames[  Rooms[CurrentRoom].item  ]);
