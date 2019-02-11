@@ -619,14 +619,18 @@ void MagicCarpetDissapears()
 	
 	//place it somewhere randomly in the caves
 	
-	int r = rand()%3 + 88;
 	
-	while (1)
+	int r = 0;
+	do 
 	{
-		if (rooms[r].Item == EMPTY)
+		r = rand()%3 + 88;
+		if (Rooms[r].item == EMPTY)
 			break;
-	}
-	rooms[r].item = MAGIC_CARPET;
+		
+	}while (1);
+
+		
+	Rooms[r].item = MAGIC_CARPET;
 	
 }
 
