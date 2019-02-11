@@ -611,8 +611,23 @@ void InvisibleMan()
 /*  ::::: MAGIC CARPET DISSAPPEARS ::::: */
 void MagicCarpetDissapears()
 {
-	printf("POOF !!!     YOUR MAGIC CARPET JUST DISSAPPEARED!\n");
-	RemoveItem(MAGIC_CARPET);		
+//	printf("POOF !!!     YOUR MAGIC CARPET JUST DISSAPPEARED!\n");
+///	RemoveItem(MAGIC_CARPET);		
+	printf("FLAP! FLAP! FLAP! THE MAGIC CARPET JUST FLEW AWAY ON ITS OWN.\n");
+
+	RemoveItem(MAGIC_CARPET);
+	
+	//place it somewhere randomly in the caves
+	
+	int r = rand()%3 + 88;
+	
+	while (1)
+	{
+		if (rooms[r].Item == EMPTY)
+			break;
+	}
+	rooms[r].item = MAGIC_CARPET;
+	
 }
 
 
